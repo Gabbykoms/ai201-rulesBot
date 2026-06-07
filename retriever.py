@@ -18,6 +18,8 @@ _collection = _client.get_or_create_collection(
 
 def get_collection():
     """Return the ChromaDB collection. Used by app.py during ingestion."""
+    # for chunk in chunks:
+    #     print(f"[{chunk['game']}] (dist: {chunk['distance']:.3f}) {chunk['text'][:80]}...")
     return _collection
 
 
@@ -68,5 +70,31 @@ def retrieve(query, n_results=N_RESULTS):
     if _collection.count() == 0:
         return []
 
-    # Your implementation here.
-    return []
+    # Query the collection with the user's question.
+    results = _collection.query(
+        query_texts=[query],
+        n_results=n_results,
+        include=["documents", "metadatas", "distances"]
+    )
+
+    # Extract results for our single query (index [0]).
+    documents = results["documents"][0]
+    metadatas = results["metadatas"][0]
+    distances = results["distances"][0]
+
+    # Build the return list, ordered by relevance (lowest distance first).
+    retrieved_chunks = [
+        {
+            "text": documents[i],
+            "game": metadatas[i]["game"],
+            "distance": distances[i]
+        }
+        for i in range(len(documents))
+    ]
+
+    # Temporary debug output
+    print(f"\n[DEBUG] Query: {query}")
+    for chunk in retrieved_chunks:
+        print(f"[{chunk['game']}] (dist: {chunk['distance']:.3f}) {chunk['text'][:80]}...")
+
+    return retrieved_chunks

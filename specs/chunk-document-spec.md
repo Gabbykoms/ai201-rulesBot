@@ -116,11 +116,16 @@ handle these cases better, at the cost of more implementation complexity.
 **Actual chunk count produced across all 8 rule books:**
 
 ```
-[your answer here]
+149 total chunks across all 8 rule books
+(Catan, Clue, Codenames, Monopoly, Pandemic, Risk, Ticket To Ride, Uno)
 ```
 
 **One thing that surprised you or didn't match your expectations:**
 
 ```
-[your answer here]
+The actual chunk count (149) is significantly lower than estimated. This suggests
+that several rule books are shorter or more concisely written than expected,
+and the 50-character minimum threshold filters out more fragments than anticipated.
+The character-based sliding window with 50-character overlap proves efficient —
+it achieves good semantic chunking without excessive redundancy.
 ```

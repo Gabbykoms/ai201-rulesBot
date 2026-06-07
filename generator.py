@@ -35,5 +35,44 @@ def generate_response(query, retrieved_chunks):
             "Try rephrasing your question — or check that your ingestion pipeline is working."
         )
 
-    # Your implementation here.
-    return "⚙️ Response generation not yet implemented. Complete Milestone 3 to activate answers."
+    # Format chunks as a numbered list with game labels
+    context = "RULE REFERENCES:\n\n"
+    for i, chunk in enumerate(retrieved_chunks, 1):
+        context += f"{i}. [{chunk['game']}]\n{chunk['text']}\n\n"
+
+    # System prompt with grounding and citation instructions
+    system_prompt = """You are a board game rules assistant. Answer questions using ONLY the rule text provided below. Do NOT use your general knowledge of board games.
+
+If the answer is not found in the provided rules, respond exactly:
+"I couldn't find that rule in the loaded rule books."
+
+Do not speculate, infer, or fill in gaps with outside knowledge. Every claim in your response must be directly traceable to the provided text.
+
+Always specify which game the answer comes from. Begin your response with:
+"In [Game Name]: " followed by the rule text or direct quote.
+
+If the answer spans multiple games, list each one: "In Catan: [answer]. In Monopoly: [answer]."
+
+If no matching rule is found, do not guess or mention a game name."""
+
+    # Build messages: system prompt + context + query
+    messages = [
+        {
+            "role": "system",
+            "content": system_prompt
+        },
+        {
+            "role": "user",
+            "content": f"{context}\nQuestion: {query}"
+        }
+    ]
+
+    # Call Groq API with low temperature for grounded, deterministic responses
+    response = _client.chat.completions.create(
+        model=LLM_MODEL,
+        messages=messages,
+        temperature=0,
+        max_tokens=500
+    )
+
+    return response.choices[0].message.content
